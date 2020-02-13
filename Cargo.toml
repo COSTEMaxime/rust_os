@@ -37,3 +37,7 @@ panic = "abort" # disable stack unwinding on panic
 [[test]]
 name = "should_panic"
 harness = false
+
+[[test]]
+name = "stack_overflow"
+harness = false

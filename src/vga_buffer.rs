@@ -173,7 +173,7 @@ fn test_println_many() {
 
 #[test_case]
 fn test_println_output() {
-    serial_println!("test-println_output...");
+    serial_println!("test_println_output...");
 
     let s = "Some test string that fits on a single line";
     println!("{}", s);
