@@ -73,3 +73,17 @@ fn many_boxes() {
     }
     serial_println!("[ok]");
 }
+
+#[test_case]
+fn many_boxes_long_lived() {
+    // need to reuse freed memory
+    serial_print!("many_boxes_long_lived...");
+    let long_lived = Box::new(42);
+    for i in 0..HEAP_SIZE {
+        let x = Box::new(i);
+        assert_eq!(*x, i);
+    }
+
+    assert_eq!(*long_lived, 42);
+    serial_println!("[ok]");
+}
