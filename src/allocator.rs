@@ -6,7 +6,11 @@ use x86_64::{
     },
     VirtAddr,
 };
-use linked_list_allocator::LockedHeap;
+
+// pub mod bump;
+// use bump::BumpAllocator;
+pub mod linked_list;
+use linked_list::LinkedListAllocator;
 
 pub const HEAP_START: usize = 0x_4444_4444_0000;
 pub const HEAP_SIZE: usize = 100 * 1024; // 100KiB
@@ -50,4 +54,43 @@ unsafe impl GlobalAlloc for Dummy {
 }
     
 #[global_allocator]
-static ALLOCATOR: LockedHeap = LockedHeap::empty();
+// static ALLOCATOR: Locked<BumpAllocator> = Locked::new(BumpAllocator::new());
+static ALLOCATOR: Locked<LinkedListAllocator> = Locked::new(LinkedListAllocator::new());
+
+// wrapper into spin::Mutex
+pub struct Locked<A> {
+    inner: spin::Mutex<A>,
+}
+
+impl<A> Locked<A> {
+    pub const fn new(inner: A) -> Self {
+        Locked {
+            inner: spin::Mutex::new(inner),
+        }
+    }
+
+    pub fn lock(&self) -> spin::MutexGuard<A> {
+        self.inner.lock()
+    }
+}
+
+// align the given address `addr` upwards to alignment `align`
+fn align_up(addr: usize, align: usize) -> usize {
+    /* slower method but easier to understand
+    let remainder = addr % align;
+    if remainder == 0 {
+        addr // addr already aligned
+    } else {
+        addr - remainder + align
+    }
+    */
+
+    /*
+    - align = 0b00001000 (align = 2^n, so only a single bit is set)
+    - align - 1 = 0b00000111 (=> set low bits to 1)
+    - !(align - 1) => 0b11111000
+    - & => clear all the bits lower than align (align downwards)
+    - increase by (align - 1) to round non aligned addresses tot he next alignment
+    */
+    (addr + align - 1) & !(align - 1)
+}
