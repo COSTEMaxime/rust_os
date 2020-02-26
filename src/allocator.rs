@@ -9,8 +9,10 @@ use x86_64::{
 
 // pub mod bump;
 // use bump::BumpAllocator;
-pub mod linked_list;
-use linked_list::LinkedListAllocator;
+// pub mod linked_list;
+// use linked_list::LinkedListAllocator;
+pub mod fixed_size_block;
+use fixed_size_block::FixedSizeBlockAllocator;
 
 pub const HEAP_START: usize = 0x_4444_4444_0000;
 pub const HEAP_SIZE: usize = 100 * 1024; // 100KiB
@@ -55,7 +57,8 @@ unsafe impl GlobalAlloc for Dummy {
     
 #[global_allocator]
 // static ALLOCATOR: Locked<BumpAllocator> = Locked::new(BumpAllocator::new());
-static ALLOCATOR: Locked<LinkedListAllocator> = Locked::new(LinkedListAllocator::new());
+// static ALLOCATOR: Locked<LinkedListAllocator> = Locked::new(LinkedListAllocator::new());
+static ALLOCATOR: Locked<FixedSizeBlockAllocator> = Locked::new(FixedSizeBlockAllocator::new());
 
 // wrapper into spin::Mutex
 pub struct Locked<A> {
@@ -75,7 +78,7 @@ impl<A> Locked<A> {
 }
 
 // align the given address `addr` upwards to alignment `align`
-fn align_up(addr: usize, align: usize) -> usize {
+/*fn align_up(addr: usize, align: usize) -> usize {
     /* slower method but easier to understand
     let remainder = addr % align;
     if remainder == 0 {
@@ -93,4 +96,4 @@ fn align_up(addr: usize, align: usize) -> usize {
     - increase by (align - 1) to round non aligned addresses tot he next alignment
     */
     (addr + align - 1) & !(align - 1)
-}
+}*/
