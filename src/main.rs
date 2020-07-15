@@ -11,6 +11,7 @@ use bootloader::{BootInfo, entry_point};
 use alloc::{boxed::Box, vec, vec::Vec, rc::Rc};
 
 use rust_os::println;
+use rust_os::task::{Task, simple_executor::SimpleExecutor};
 
 entry_point!(kernel_main);
 
@@ -56,6 +57,12 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     core::mem::drop(reference_counted);
     println!("new ref count is {}", Rc::strong_count(&cloned_reference));
 
+
+    // test .wait
+    let mut executor = SimpleExecutor::new();
+    executor.spawn(Task::new(example_task()));
+    executor.run();
+
     #[cfg(test)]
     test_main();
 
@@ -76,4 +83,13 @@ fn panic(info: &PanicInfo) -> ! {
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     rust_os::test_panic_handler(info)
+}
+
+async fn async_number() -> u32 {
+    42
+}
+
+async fn example_task() {
+    let number = async_number().await;
+    println!("async number: {}", number);
 }

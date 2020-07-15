@@ -7,18 +7,34 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bootloader = { version = "0.8.1", features = ["map_physical_memory"] }
+bootloader = { version = "0.9.3", features = ["map_physical_memory"]}
 volatile = "0.2.6"
 spin = "0.5.2"
-x86_64 = "0.8.1"
-uart_16550 = "0.2.0"
-pic8259_simple = "0.1.1"
-pc-keyboard = { path = "../pc-keyboard" }
-linked_list_allocator = "0.6.4"
+x86_64 = "0.11.0"
+uart_16550 = "0.2.7"
+pic8259_simple = "0.2.0"
+linked_list_allocator = "0.8.0"
+
+[dependencies.pc-keyboard]
+path = "../pc-keyboard"
 
 [dependencies.lazy_static]
 version = "1.0"
 features = ["spin_no_std"]
+
+[dependencies.crossbeam-queue]
+version = "0.2.1"
+default-features = false
+features = ["alloc"]
+
+[dependencies.conquer-once]
+version = "0.2.0"
+default-features = false
+
+[dependencies.futures-util]
+version = "0.3.4"
+default-features = false
+features = ["alloc"]
 
 [package.metadata.bootimage]
 test-args = [
