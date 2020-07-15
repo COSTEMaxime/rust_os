@@ -3,7 +3,7 @@ use pic8259_simple::ChainedPics;
 use lazy_static::lazy_static;
 use spin;
 
-use crate::{print, println};
+use crate::println;
 use crate::hlt_loop;
 use crate::gdt;
 extern crate pc_keyboard;
@@ -111,29 +111,11 @@ extern "x86-interrupt" fn timer_interrupt_handler(_stack_frame: &mut InterruptSt
 extern "x86-interrupt" fn keyboard_interrupt_handler(_stack_frame: &mut InterruptStackFrame)
 {
     use x86_64::instructions::port::Port;
-    use pc_keyboard::{Keyboard, ScancodeSet1, layouts, HandleControl, DecodedKey};
-    use spin::Mutex;
-
-    lazy_static! {
-        static ref KEYBOARD: Mutex<Keyboard<layouts::ANSI103fr, ScancodeSet1>> =
-            Mutex::new(Keyboard::new(layouts::ANSI103fr, ScancodeSet1, HandleControl::MapLettersToUnicode));
-    }
-
-    let mut keyboard = KEYBOARD.lock();
 
     // read data from port number 0x60
     let mut port = Port::new(0x60);
     let scancode: u8 = unsafe { port.read() };
-
-    // add_byte translates from scancode to Option<KeyEvent>
-    if let Ok(Some(key_event)) = keyboard.add_byte(scancode) {
-        if let Some(key) = keyboard.process_keyevent(key_event) {
-            match key {
-                DecodedKey::Unicode(character) => print!("{}", character),
-                DecodedKey::RawKey(key) => print!("{:?}", key),
-            }
-        }
-    }
+    crate::task::keyboard::add_scancode(scancode);
 
     unsafe {
         PICS.lock().notify_end_of_interrupt(InterruptIndex::Keyboard.as_u8());
